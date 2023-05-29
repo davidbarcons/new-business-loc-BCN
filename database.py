@@ -57,25 +57,20 @@ class database:
             # Close the cursor and connection
             cursor.close()
             self.connection.close()
-
-    @staticmethod
-    def write_insert_query_from_dict(table, dictionary):
-        # Prepare data for the query
+    
+    def insert_gmaps_places(self, table, search_result):
+        # Pre-process
+        
         dictionary['vicinity'] = dictionary['vicinity'].replace(",", "")
         vals = ", ".join("'{s}'".format(s=s.replace("'", "''")) if isinstance(s, str) else str(s) for s in dictionary.values())
         keys = ", ".join(str(s) for s in dictionary.keys())
-        query = "INSERT INTO {table} ({keys}) VALUES ({vals})".format(table=table, keys=keys, vals=vals)
-        return query
-    
-    def insert_query(self, table, search_result):
-        insert_query = self.write_insert_query_from_dict(table, search_result)
+        insert_query = "INSERT INTO {table} ({keys}) VALUES ({vals})".format(table=table, keys=keys, vals=vals)
+      
         try:
             self.execute_query(insert_query)
         except Error as err:
             print(f"Error: '{err}'")
             
-    import mysql.connector
-
     def execute_select_query(self, select_query):
     
         self.connection.reconnect()
