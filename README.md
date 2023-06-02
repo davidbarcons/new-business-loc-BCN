@@ -1,19 +1,15 @@
 # new-business-loc-BCN
 
 Where in Barcelona is my new business going to be most sucessful? 
+*Note: It will fisrt be implemented for restaurants due to google maps api restrictions
 
-I use  ML algorithms to find the best location for a new business.
-
-Data is stored in a mySQL database, using the following tables:
-- restaurant
-- neighborhood
-- district
-- censal_section
+I use ML to find the best location for a new business.
 
 Data is retrieved from the following sources:
 - Google maps Places API.
   * Nearby search: place_id, name, rating, user_rating_total, price_level, vicinity, geometry, business_status
-- Barcelona open data (city council). The complete catalog of dataset can be consulted at https://opendata-ajuntament.barcelona.cat/data/en/dataset
+- Barcelona open data (city council). The complete catalog of dataset can be consulted at https://opendata-ajuntament.barcelona.cat/data/en/dataset. Data is stored in a mySQL database. We use the notebooks in bcn-open-data/loaders to load the data to our local mySQL database.
+
 
 List of resources implemented:
  - Median tax income per unit of consumption (€/year). Censal section classification. https://opendata-ajuntament.barcelona.cat/data/en/dataset/atles-renda-mediana/resource/ef7e3825-0afd-444e-997f-8a8e999f0fe7
