@@ -60,10 +60,9 @@ class database:
     
     def insert_gmaps_places(self, table, search_result):
         # Pre-process
-        
-        dictionary['vicinity'] = dictionary['vicinity'].replace(",", "")
-        vals = ", ".join("'{s}'".format(s=s.replace("'", "''")) if isinstance(s, str) else str(s) for s in dictionary.values())
-        keys = ", ".join(str(s) for s in dictionary.keys())
+        search_result['vicinity'] = search_result['vicinity'].replace(",", "")
+        vals = ", ".join("'{s}'".format(s=s.replace("'", "''")) if isinstance(s, str) else str(s) for s in search_result.values())
+        keys = ", ".join(str(s) for s in search_result.keys())
         insert_query = "INSERT INTO {table} ({keys}) VALUES ({vals})".format(table=table, keys=keys, vals=vals)
       
         try:

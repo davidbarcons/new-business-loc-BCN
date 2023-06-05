@@ -1,10 +1,26 @@
+import requests
+import urllib.parse
+import pandas as pd
 import googlemaps
 from pyproj import Transformer
 from shapely.geometry import Point
 import numpy as np
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 
 class gmaps_places:
+    """
+    Class to make a nearby search in google maps places API, given the geometric bounds within we want to search.
+    self.create_grid_coords(self, multipolygon, distance):
+        Creates the grid. 
+        - border: shapely.geometry.multipolygon.MultiPolygon object describing the border.
+        - distance: spacing between grid points.
+    self.nearby_search(self, radius):
+        It does the "nearby search" at all grid points.
+        - radius: radius of the "nearby search". It should be optimized upon the density of places where the search is done.
+                Bare in mind that the API returns a maximum of 20 places.
+    process_search(self):
+        It processes the search results into a dictionary format that we can easily load into our database.
+    """
             
     def __init__(self, key, keys_to_store = None):
         #Create the connection to gmaps
@@ -55,20 +71,49 @@ class gmaps_places:
                 self.grid_coords.append(self.coord_transformer_inv.transform(int(p.coords.xy[0][0]),int(p.coords.xy[1][0])))  
 
     def nearby_search (self, radius):
-    
         try:
             grid = self.grid_coords
         except NameError:
             raise NameError("Grid does not exist yet. Use 'create_grid_coords' method first.")
-
         for loc in tqdm(grid):
             self.search = self.client.places_nearby(
                 location= loc,
-                radius = 100,
+                radius = radius,
                 type = 'restaurant',
-                #pen_now = True
-                )
-            
+                #open_now = True
+                ) 
         self.process_search()
         return self.processed_search
  
+
+class bcn_open_data:
+    """
+    Class to collect data (a full SQL table) from the BCN open data website: https://opendata-ajuntament.barcelona.cat/data/en/dataset
+    The method self.get_data(table_id) returns a pandas DataFrame containing all the data in the table.
+    ** Check which databases are supported for SQL querying.
+    """
+    def __init__(self):
+        self.url_base = 'https://opendata-ajuntament.barcelona.cat/data/api/action/datastore_search_sql?sql='
+        self.sql_select_query = """ SELECT * from "table" """
+
+    def convert_sql_query_to_bcnod_url(self, table_id):
+        q = self.sql_select_query.replace('table', table_id)
+        q = urllib.parse.quote(q)
+        return str(self.url_base + q)
+    
+    def to_numeric(self, dataframe):
+        for col in dataframe.columns.tolist():
+            try:
+                dataframe[col] = dataframe[col].astype(str)
+                dataframe[col] = pd.to_numeric(dataframe[col])
+            except ValueError:
+                dataframe[col] = dataframe[col].astype(str)
+                pass
+        return dataframe
+
+    def get_data(self, table_id):
+        api_url = self.convert_sql_query_to_bcnod_url (table_id)
+        response = requests.get(api_url).json()
+        df = pd.DataFrame(response['result']['records'])
+        return self.to_numeric(df)
+    
